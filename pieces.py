@@ -1,4 +1,4 @@
-NONE = (0, 0)
+NONE = (-1, -1)
 KING = 1
 PAWN = 2
 KNIGHT = 3
@@ -22,4 +22,19 @@ images = {
     (1, 4): 'pieces/BlackBishop.png',
     (1, 5): 'pieces/BlackRook.png',
     (1, 6): 'pieces/BlackQueen.png'
+}
+
+fen_dict = {
+    'K': (0, 1),
+    'P': (0, 2),
+    'N': (0, 3),
+    'B': (0, 4),
+    'R': (0, 5),
+    'Q': (0, 6),
+    'k': (1, 1),
+    'p': (1, 2),
+    'n': (1, 3),
+    'b': (1, 4),
+    'r': (1, 5),
+    'q': (1, 6)
 }
