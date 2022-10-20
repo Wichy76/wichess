@@ -5,7 +5,7 @@ import rules
 black = (100, 100, 100)
 white = (180, 180, 180)
 
-
+n = 75
 def create_board():
     board = []
     for y in range(8):
@@ -17,9 +17,9 @@ def create_board():
 
 
 def draw_square(game_display, x, y, color, piece_img):
-    pygame.draw.rect(game_display, color, (x, y, 100, 100))
+    pygame.draw.rect(game_display, color, (x, y, n, n))
     if piece_img != pieces.NONE:
-        game_display.blit(piece_img, (x + 10, y + 10))
+        game_display.blit(piece_img, (x - 2, y - 2))
 
 
 def draw_board(game_display, board):
@@ -28,8 +28,8 @@ def draw_board(game_display, board):
     for x in range(0, 8):
         for y in range(0, 8):
             draw_square(game_display,
-                       x * 100,
-                       y * 100,
+                       x * n,
+                       y * n,
                        white if (x + y) % 2 == 0 else black,
                        draw_image(board[x][y]))
 
@@ -43,14 +43,14 @@ def draw_image(piece):
 def get_square_under_mouse(board):
     mouse_pos = pygame.Vector2(pygame.mouse.get_pos())
     x, y = int(mouse_pos[0]), int(mouse_pos[1])
-    return board[x // 100][y // 100], x, y
+    return board[x // n][y // n], x, y
 
 
 def draw_drag(game_display, board, selected_piece):
     if selected_piece:
         piece, x, y = get_square_under_mouse(board)
         if x is not None:
-            pygame.draw.rect(game_display, (255, 0, 0), ((x // 100) * 100, (y // 100) * 100, 100, 100), 1)
+            pygame.draw.rect(game_display, (255, 0, 0), ((x // n) * n, (y // n) * n, n, n), 1)
 
         game_display.blit(draw_image(selected_piece[0]), (x - 40, y - 40))
         return x, y
@@ -82,15 +82,15 @@ def fen_current_turn(turn):
         return pieces.BLACK
 
 
-def is_valid_move(selected_piece, new_pos, current_turn, board):
+def is_valid_move(selected_piece, new_pos, current_turn, board, lastMove):
     piece, old_x, old_y = selected_piece
     new_x, new_y = new_pos
-    if old_x // 100 == new_x // 100 and old_y // 100 == new_y // 100:
+    if old_x // n == new_x // n and old_y // n == new_y // n:
         return False
-    if board[new_x // 100][new_y // 100][0] == current_turn:
+    if board[new_x // n][new_y // n][0] == current_turn:
         return False
     if piece == (current_turn, pieces.PAWN):
-        return rules.valid_pawn_movement(selected_piece, new_pos, current_turn)
+        return rules.valid_pawn_movement(selected_piece, new_pos, current_turn, lastMove, board)
     if piece == (current_turn, pieces.KNIGHT):
         return rules.valid_knight_movement(selected_piece, new_pos, current_turn)
     if piece == (current_turn, pieces.KING):
@@ -108,8 +108,8 @@ def is_valid_move(selected_piece, new_pos, current_turn, board):
 def main():
     pygame.init()
 
-    display_width = 800
-    display_height = 800
+    display_width = 600
+    display_height = 600
 
     game_display = pygame.display.set_mode((display_width, display_height))
     pygame.display.set_caption('Wichess')
@@ -121,6 +121,7 @@ def main():
     selected_piece = None
     drop_pos = None
 
+    lastMove = (pieces.NONE, 0, 0)
     while not end:
         piece, x, y = get_square_under_mouse(board)
         for event in pygame.event.get():
@@ -130,14 +131,17 @@ def main():
                 if piece != pieces.NONE:
                     selected_piece = piece, x, y
             if event.type == pygame.MOUSEBUTTONUP:
-                if drop_pos and is_valid_move(selected_piece, drop_pos, current_turn, board):
+                
+                if drop_pos and is_valid_move(selected_piece, drop_pos, current_turn, board, lastMove):
                     piece, old_x, old_y = selected_piece
-                    board[(old_x // 100)][(old_y // 100)] = pieces.NONE
+                    board[(old_x // n)][(old_y // n)] = pieces.NONE
                     new_x, new_y = drop_pos
-                    board[(new_x // 100)][(new_y // 100)] = piece
+                    board[(new_x // n)][(new_y // n)] = piece
                     current_turn = pieces.WHITE if current_turn != pieces.WHITE else pieces.BLACK
+                    lastMove = (selected_piece[0][1], drop_pos[0], drop_pos[1])
                 selected_piece = None
                 drop_pos = None
+                
         draw_board(game_display, board)
         drop_pos = draw_drag(game_display, board, selected_piece)
         pygame.display.flip()
